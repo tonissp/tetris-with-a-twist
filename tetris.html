@@ -27,15 +27,15 @@
 <canvas width="520" height="640" id="game"></canvas>
 <script>
 
-function getRandomPieceChance(linesCleared) {
-  return 0.005 * (35 - dropSpeed);
-}
-
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRandomPieceChance() {
+  return 0.01 * (level - 1);
 }
 
 function generateSequence() {
@@ -53,7 +53,6 @@ function generateTetromino() {
     generateSequence();
   }
 
-  // Normal logic: Pop from the sequence
   const name = tetrominoSequence.pop();
   const matrix = tetrominos[name];
 
@@ -63,6 +62,58 @@ function generateTetromino() {
     row: name === 'I' ? -1 : -2,
     col: playfield[0].length / 2 - Math.ceil(matrix[0].length / 2),
   };
+}
+
+function differentTetromino() {
+  const randomChance = getRandomPieceChance();
+  if (Math.random() < randomChance) {
+    tetrominoNames = Object.keys(tetrominos)
+    if (nextTetromino.name === 'J') {
+      const name = 'L';
+      const matrix = tetrominos[name];
+
+      tetromino = {
+        name: name,
+        matrix: matrix,
+        row: name === 'I' ? -1 : -2,
+        col: playfield[0].length / 2 - Math.ceil(matrix[0].length / 2),
+      }
+    } else if (nextTetromino.name === 'L') {
+      const name = 'J';
+      const matrix = tetrominos[name];
+
+      tetromino = {
+        name: name,
+        matrix: matrix,
+        row: name === 'I' ? -1 : -2,
+        col: playfield[0].length / 2 - Math.ceil(matrix[0].length / 2),
+      }
+    } else if (nextTetromino.name === 'S') {
+      const name = 'Z';
+      const matrix = tetrominos[name];
+
+      tetromino = {
+        name: name,
+        matrix: matrix,
+        row: name === 'I' ? -1 : -2,
+        col: playfield[0].length / 2 - Math.ceil(matrix[0].length / 2),
+      }
+    } else if (nextTetromino.name === 'Z') {
+      const name = 'S';
+      const matrix = tetrominos[name];
+
+      tetromino = {
+        name: name,
+        matrix: matrix,
+        row: name === 'I' ? -1 : -2,
+        col: playfield[0].length / 2 - Math.ceil(matrix[0].length / 2),
+      }
+    } else {
+      tetromino = nextTetromino;
+    }
+  } else {
+    tetromino = nextTetromino;
+  }
 }
 
 
@@ -122,55 +173,8 @@ function placeTetromino() {
     }
   }
 
-  const randomChance = getRandomPieceChance(linesCleared);
-  if (Math.random() < randomChance) {
-    const randomPieceNames = Object.keys(tetrominos);
-    const randomIndex = getRandomInt(0, randomPieceNames.length - 1);
-    const randomName = randomPieceNames[randomIndex];
-    const randomMatrix = tetrominos[randomName];
-    tetromino = {
-      name: randomName,
-      matrix: randomMatrix,
-      row: randomName === 'I' ? -1 : -2,
-      col: playfield[0].length / 2 - Math.ceil(randomMatrix[0].length / 2),
-    };
-  } else {
-    tetromino = nextTetromino;
-  }
+  differentTetromino()
   nextTetromino = generateTetromino();
-}
-
-function showGameOver() {
-  cancelAnimationFrame(rAF);
-  gameState = "over";
-
-  // Draw a semi-transparent black background for the game over message
-  context.fillStyle = 'black';
-  context.globalAlpha = 0.75;
-  context.fillRect(0, canvas.height / 2 - 60, canvas.width, 120);
-
-  context.globalAlpha = 1; // Reset transparency
-
-  // Set up text styles
-  context.font = '36px monospace';
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-
-  // Draw "GAME OVER!" with a black outline and white fill
-  context.lineWidth = 4; // Thickness of the outline
-  context.strokeStyle = 'black';
-  context.strokeText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 30);
-  context.fillStyle = 'white';
-  context.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 30);
-
-  context.font = '20px monospace';
-  context.strokeText(`You Reached Level ${35 - dropSpeed}`, canvas.width / 2, canvas.height / 2 + 10);
-  context.fillText(`You Reached Level ${35 - dropSpeed}`, canvas.width / 2, canvas.height / 2 + 10);
-
-  // Draw "Press Enter to Restart" with a black outline and white fill
-  context.font = '20px monospace';
-  context.strokeText('Press Enter to Try Again', canvas.width / 2, canvas.height / 2 + 40);
-  context.fillText('Press Enter to Try Again', canvas.width / 2, canvas.height / 2 + 40);
 }
 
 const canvas = document.getElementById('game');
@@ -240,14 +244,20 @@ const colors = {
 
 let gameState = "start";
 let count = 0;
-let dropSpeed = 34;
+let dropSpeed = 43;
 let linesCleared = 0;
 let tetromino = generateTetromino();
 let nextTetromino = generateTetromino(); 
-let rAF = null; 
+let rAF = null;
+let level = 1
 
 function updateSpeed() {
-  dropSpeed = Math.max(5, 34 - Math.floor(linesCleared / 4));
+  updateLevel()
+  dropSpeed = 45 - (2 * level);
+}
+
+function updateLevel() {
+  level = Math.min(20, 1 + Math.floor(linesCleared / 8))
 }
 
 function drawNextPiece() {
@@ -286,8 +296,7 @@ function showStartScreen() {
   context.textAlign = 'center';
   context.textBaseline = 'middle';
 
-  // Display the start message
-  context.lineWidth = 4; // Add an outline
+  context.lineWidth = 4;
   context.strokeStyle = 'black';
   context.strokeText('TETRIS', canvas.width / 2, canvas.height / 2 - 80);
   context.fillText('TETRIS', canvas.width / 2, canvas.height / 2 - 80);
@@ -315,7 +324,7 @@ function showStartScreen() {
 
 function game() {
   if (gameState === "start") {
-    showStartScreen(); // Show the start screen
+    showStartScreen();
     return;
   }
 
@@ -323,7 +332,6 @@ function game() {
     rAF = requestAnimationFrame(game);
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw the playfield
     for (let row = 0; row < 20; row++) {
       for (let col = 0; col < 10; col++) {
         if (playfield[row][col]) {
@@ -334,7 +342,6 @@ function game() {
       }
     }
 
-    // Draw the current tetromino
     if (tetromino) {
       if (++count > dropSpeed) {
         tetromino.row++;
@@ -363,27 +370,55 @@ function game() {
 
     drawNextPiece();
 
-    // Draw a white border between the playfield and stats
     context.fillStyle = 'white';
-    context.fillRect(320, 0, 2, canvas.height); // Draw a vertical line at x = 320
+    context.fillRect(320, 0, 2, canvas.height);
 
-    // Draw stats on the right side of the canvas
     context.fillStyle = 'white';
     context.font = '18px monospace';
     context.textAlign = 'left';
     context.textBaseline = 'top';
 
-    const statsX = 370; // Start drawing stats at x = 340 (right side of the border)
+    const statsX = 370;
 
-    context.fillText(`Level: ${35 - dropSpeed}`, statsX, 200);
+    context.fillText(`Level: ${level}`, statsX, 200);
   }
 }
 
+function showGameOver() {
+  cancelAnimationFrame(rAF);
+  gameState = "over";
+
+  context.fillStyle = 'black';
+  context.globalAlpha = 0.75;
+  context.fillRect(0, canvas.height / 2 - 60, canvas.width, 120);
+
+  context.globalAlpha = 1;
+
+  context.font = '36px monospace';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+
+  context.lineWidth = 4;
+  context.strokeStyle = 'black';
+  context.strokeText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 30);
+  context.fillStyle = 'white';
+  context.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 30);
+
+  context.font = '20px monospace';
+  context.strokeText(`You Reached Level ${level}`, canvas.width / 2, canvas.height / 2 + 10);
+  context.fillText(`You Reached Level ${level}`, canvas.width / 2, canvas.height / 2 + 10);
+
+  context.font = '20px monospace';
+  context.strokeText('Press Enter to Try Again', canvas.width / 2, canvas.height / 2 + 40);
+  context.fillText('Press Enter to Try Again', canvas.width / 2, canvas.height / 2 + 40);
+}
+
 function resetGame() {
-  gameState = "running";      // Set the state to running
+  gameState = "running";
   tetrominoSequence.length = 0;
   linesCleared = 0;
-  dropSpeed = 34;
+  dropSpeed = 43;
+  level = 1;
 
   for (let row = -2; row < 20; row++) {
     playfield[row] = [];
@@ -399,16 +434,16 @@ function resetGame() {
 }
 
 document.addEventListener('keydown', function(e) {
-  if (gameState === "start" && e.which === 13) { // Enter key
-    gameState = "running"; // Change to running state
-    resetGame();           // Initialize the game
+  if (gameState === "start" && e.which === 13) {
+    gameState = "running";
+    resetGame();
     return;
   }
 
-  // Restart the game if on the game over screen
-  if (gameState === "over" && e.which === 13) { // Enter key
+
+  if (gameState === "over" && e.which === 13) {
     gameState = "running";
-    resetGame(); // Restart the game
+    resetGame();
     return;
   }
 
@@ -447,6 +482,7 @@ document.addEventListener('keydown', function(e) {
     tetromino.row = row;
   }
 
+  // space
   if (e.which === 32) {
     while (isValidMove(tetromino.matrix, tetromino.row + 1, tetromino.col)) {
       tetromino.row++;
